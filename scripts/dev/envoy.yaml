@@ -71,6 +71,14 @@ static_resources:
                   prefix: "/"
                 route: 
                   cluster: web_service
+                typed_per_filter_config:
+                  proxy.filters.http.rider:
+                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
+                    plugins:
+                      - name: uri-restriction
+                        config:
+                          allowlist:
+                            - 10.1.1.1
           http_filters:
           - name: proxy.filters.http.rider
             typed_config:
@@ -108,6 +116,17 @@ static_resources:
                   local:
                     filename: /usr/local/lib/rider/plugins/body_to_header.lua
                 name: body_to_header_to_refresh
+          - name: proxy.filters.http.rider
+            typed_config:
+              "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.FilterConfig
+              plugin:
+                vm_config:
+                  package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
+                code:
+                  local:
+                    filename: /usr/local/lib/rider/plugins/uri-restriction.lua
+                name: uri-restriction
+                config: {}
           - name: envoy.filters.http.router
             typed_config: {}
 
