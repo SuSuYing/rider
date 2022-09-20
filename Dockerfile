@@ -1,6 +1,4 @@
-ARG BASE_IMAGE
-
-FROM $BASE_IMAGE
+FROM hangoio/envoy-proxy:v0.0.1-b9696c2
 
 RUN apt-get update && apt-get install -y                                                \
     git luarocks                                                                        \

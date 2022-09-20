@@ -1,4 +1,4 @@
-require("rider")
+require("rider.v2")
 
 local envoy = envoy
 local get_req_header = envoy.req.get_header
@@ -8,6 +8,7 @@ local re_find = string.find
 local respond = envoy.respond
 local logDebug = envoy.logDebug
 local logErr = envoy.logErr
+local logInfo = envoy.logInfo
 --local inspect = require("inspect")
 
 local json_validator = require("rider.json_validator")
@@ -66,7 +67,7 @@ local route_json_schema = {
 json_validator.register_validator(base_json_schema, route_json_schema)
 
 local echoHandler = {}
-
+echoHandler.version = "v2"
 -- Source types specify where to get data.
 -- Header: get a request header value by header_name argument.
 -- Body: get request body.
@@ -143,31 +144,39 @@ end
 local function get_config()
   local base_config = envoy.get_base_config()
   local route_config = envoy.get_route_config()
-  if route_config ~= nil and #route_config.source > 0 and #route_config.destination > 0 then
+  if route_config ~= nil and route_config.source ~=nil and #route_config.source > 0 and #route_config.destination > 0 then
     return route_config
   end
-  return base_config
+  return nil
 end
 
-function echoHandler:on_request()
-  local config = get_config()
-  local shared = envoy.stream.shared
-
-  local metadata = envoy.req.get_metadata("api_id", "proxy.filters.http.rider")
-  if metadata ~= nil then
-    envoy.respond({[":status"] = 200}, metadata)
-    return
-  end
-
-  get_message_from_source(config, shared)
-
-  if config.destination == ENUM_DESTINATION.Body then
-    envoy.respond({[":status"] = 200}, shared.message)
-  end
+function echoHandler:on_request_body()
+    logInfo("[echo] request start")
+    local config = get_config()
+    if config == nil then
+        logInfo("[echo] request no plugin")
+        return
+    end
+    local shared = envoy.stream.shared
+    local metadata = envoy.req.get_metadata("api_id", "proxy.filters.http.rider")
+    if metadata ~= nil then
+        envoy.respond({[":status"] = 200}, metadata)
+        return
+    end
+    get_message_from_source(config, shared)
+    if config.destination == ENUM_DESTINATION.Body then
+        envoy.respond({[":status"] = 200}, shared.message)
+    end
 end
 
-function echoHandler:on_response()
+function echoHandler:on_response_body()
+  logInfo("[echo] response start")
   local config = get_config()
+    if config == nil then
+        logInfo("[echo] response no plugin")
+        return
+    end
+
   local shared = envoy.stream.shared
 
   if shared.error == 1 then
@@ -179,6 +188,7 @@ function echoHandler:on_response()
   if dest_type == ENUM_DESTINATION.Header then
     set_resp_header(config.header_name, config.message)
   end
+  logInfo("[echo] response end")
 end
 
 return echoHandler

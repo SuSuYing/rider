@@ -1,7 +1,8 @@
 require "rider.base"
 require "rider.logging"
-require "rider.config"
+
 require "rider.httpstream"
+require "rider.config"
 
 local VERSION = "1.0.0"
 

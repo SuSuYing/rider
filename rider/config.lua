@@ -25,12 +25,16 @@ exports.VALIDATE_OK = VALIDATE_OK
 exports.VALIDATE_FAIL = VALIDATE_FAIL
 
 local function null_validator(config_object)
+    --C.envoy_http_lua_ffi_log(get_context_handle(), 2, "[get_route_config] v1 validate ??")
+    C.envoy_http_lua_ffi_v2_log(2, "[config] v1 null_validator")
+    --envoy.logInfo("[get_route_config] v1 validate ??")
     return VALIDATE_OK
 end
 local base_config_validator = null_validator
 local route_config_validator = null_validator
 
 local function register_config_validator(new_base_config_validator, new_route_config_validator)
+    print("[config] register_config_validator start")
     if new_base_config_validator ~= nil then
         base_config_validator = new_base_config_validator
     end
@@ -38,7 +42,6 @@ local function register_config_validator(new_base_config_validator, new_route_co
     if new_route_config_validator ~= nil then
         route_config_validator = new_route_config_validator
     end
-
     -- Validate the base config.
     envoy.get_base_config()
 end
@@ -49,6 +52,7 @@ setmetatable(cache, { __mode = 'v' })
 local base_config
 
 function envoy.get_base_config()
+    print("[config] get_base_config start")
     if base_config ~= nil then
         if base_config.validate_error ~= nil then
             error(base_config.validate_error, 2)
@@ -66,11 +70,13 @@ function envoy.get_base_config()
 
     local config_json_object = cjson_decode(ffi_str(buffer[0].data, buffer[0].len))
     local result, err = base_config_validator(config_json_object)
+    print("[config] get_base_config validate result:" .. result)
     if result == VALIDATE_OK then
         base_config = {
             data = config_json_object,
         }
     else
+        print("[config] get_base_config validate err:" .. err)
         base_config = {
             validate_error = err,
         }
@@ -80,9 +86,9 @@ function envoy.get_base_config()
 end
 
 function envoy.get_route_config()
+    C.envoy_http_lua_ffi_v2_log(2, "[config] v1 get_route_config")
     local context = get_context_handle()
     local hash = C.envoy_http_lua_ffi_get_route_config_hash(context)
-
     -- No route config.
     if not hash then return nil end
 
@@ -92,8 +98,8 @@ function envoy.get_route_config()
             return entry.data.config
         end
         error(entry.validate_error, 2)
+        return entry.data.config
     end
-
     local buffer = ffi_new("envoy_lua_ffi_str_t[1]")
     local rc = C.envoy_http_lua_ffi_get_route_configuration(context, buffer)
 
@@ -105,8 +111,8 @@ function envoy.get_route_config()
         error("error get route config: "..rc)
     end
 
+    C.envoy_http_lua_ffi_v2_log(2, "[config] v1 validate start")
     local config_json_object = cjson_decode(ffi_str(buffer[0].data, buffer[0].len))
-
     local result, err = route_config_validator(config_json_object.config)
     if result == VALIDATE_OK then
         cache[hash] = {
@@ -118,7 +124,6 @@ function envoy.get_route_config()
         }
         error(err, 2)
     end
-
     return config_json_object.config
 end
 

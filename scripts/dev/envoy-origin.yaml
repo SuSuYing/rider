@@ -18,11 +18,21 @@ static_resources:
             - name: local_service
               domains:
               - "*"
+              # Plugin config here applies to the VirtualHost
+              #
+              # typed_per_filter_config:
+              #   proxy.filters.http.rider:
+              #     "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
+              #     plugins:
               routes:
               - match:
-                  prefix: "/echo"
+                  prefix: "/static-to-header"
                 route: 
                   cluster: web_service
+                # Plugin config here applies to the Route 
+                #
+                # plugins is a list of plugin route configs. Each entry has a name and its config.
+                # The filter will look up the list by order given a plugin name, and use the first match entry.
                 typed_per_filter_config:
                   proxy.filters.http.rider:
                     "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
@@ -34,26 +44,22 @@ static_resources:
                           destination: Header
                           header_name: x-echo-foo
               - match:
-                  prefix: "/mock"
-                route:
+                  prefix: "/external-to-body"
+                route: 
                   cluster: web_service
                 typed_per_filter_config:
                   proxy.filters.http.rider:
                     "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
                     plugins:
-                      - name: mock
+                      - name: echo
                         config:
-                          code:
-                            POST: "400"
-                            GET: "201"
-                          body: "Ysy test hhh"
-                          headers:
-                            a: "aaaaaa"
-                            hhhh: "hhhhhhhh"
-                          defaultcode: 499
+                          external_service: example_service
+                          external_service_authority: example.com
+                          source: External
+                          destination: Body
               - match:
-                  prefix: "/mix"
-                route:
+                  prefix: "/body-to-body"
+                route: 
                   cluster: web_service
                 typed_per_filter_config:
                   proxy.filters.http.rider:
@@ -63,10 +69,6 @@ static_resources:
                         config:
                           source: Body
                           destination: Body
-                      - name: mock
-                        config:
-                          body: Ysy test hhh
-                          header: {}
               - match:
                   prefix: "/"
                 route: 
@@ -86,28 +88,6 @@ static_resources:
                   message: "C++ is awesome!"
                   source: Static
                   destination: Body
-          - name: proxy.filters.http.rider
-            typed_config:
-              "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.FilterConfig
-              plugin:
-                vm_config:
-                  package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
-                code:
-                  local:
-                    filename: /usr/local/lib/rider/examples/apisix/mock.lua
-                name: mock
-                config:
-                  defaultcode: 200
-          - name: proxy.filters.http.rider
-            typed_config:
-              "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.FilterConfig
-              plugin:
-                vm_config:
-                  package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
-                code:
-                  local:
-                    filename: /usr/local/lib/rider/examples/body_to_header_to_refresh/body_to_header.lua
-                name: body_to_header_to_refresh
           - name: envoy.filters.http.router
             typed_config: {}
 
