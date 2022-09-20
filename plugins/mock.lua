@@ -54,6 +54,7 @@ mockHandler.version = "v2"
 
 function mockHandler.on_request_body()
     logInfo("[mock] request body start");
+
     local conf = envoy.get_route_config()
     if conf == nil then
         logInfo("[mock] no config");

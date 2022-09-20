@@ -80,7 +80,7 @@ static_resources:
                   package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
                 code:
                   local:
-                    filename: /usr/local/lib/rider/examples/echo/echo.lua
+                    filename: /usr/local/lib/rider/plugins/echo.lua
                 name: echo
                 config:
                   message: "C++ is awesome!"
@@ -94,7 +94,7 @@ static_resources:
                   package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
                 code:
                   local:
-                    filename: /usr/local/lib/rider/examples/apisix/mock.lua
+                    filename: /usr/local/lib/rider/plugins/mock.lua
                 name: mock
                 config:
                   defaultcode: 200
@@ -106,7 +106,7 @@ static_resources:
                   package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
                 code:
                   local:
-                    filename: /usr/local/lib/rider/examples/body_to_header_to_refresh/body_to_header.lua
+                    filename: /usr/local/lib/rider/plugins/body_to_header.lua
                 name: body_to_header_to_refresh
           - name: envoy.filters.http.router
             typed_config: {}
