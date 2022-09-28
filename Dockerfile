@@ -1,4 +1,4 @@
-FROM hangoio/envoy-proxy:v0.0.1-b9696c2
+FROM hangoio/envoy-proxy:v1.0.3-9c18597-amd64
 
 RUN apt-get update && apt-get install -y                                                \
     git luarocks                                                                        \

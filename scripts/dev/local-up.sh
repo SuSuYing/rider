@@ -4,9 +4,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-BASE_ENVOY_IMAGE=${BASE_ENVOY_IMAGE:-"hangoio/envoy-proxy:v0.0.1-b9696c2"}
+BASE_ENVOY_IMAGE=${BASE_ENVOY_IMAGE:-"hangoio/envoy-proxy:v1.0.3-9c18597-amd64"}
 
-BASE_IMAGE=${BASE_ENVOY_IMAGE} IMAGE_TAG=rider:local-dev make build
+BASE_IMAGE=${BASE_ENVOY_IMAGE} IMAGE_TAG=docker-registry.qiyi.virtual/yangsuying/rider:v1.0-alpha make build
 
 FORCE_BUILD=0
 if [[ $# -gt 0 ]]; then
